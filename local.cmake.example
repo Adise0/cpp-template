@@ -1,0 +1,7 @@
+# Personal build settings for YOUR machine only.
+# Copy this file to local.cmake (gitignored) and uncomment what you need.
+# Anything set here overrides the config block at the top of CMakeLists.txt,
+# but only on your machine: teammates and CI never see it.
+
+# Build with a different compiler than the project default
+# set(APP_COMPILER "clang-cl")

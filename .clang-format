@@ -1,0 +1,19 @@
+IndentWidth: 2
+ColumnLimit: 100
+UseTab: Never
+DerivePointerAlignment: false
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+KeepEmptyLines:
+  AtEndOfFile: true
+  AtStartOfBlock: true
+  AtStartOfFile: true
+IndentCaseBlocks: true
+MaxEmptyLinesToKeep: 3
+
+BraceWrapping:
+  AfterNamespace: false
+  AfterCaseLabel: true
+  BeforeLambdaBody: true
+
+BreakStringLiterals: false
+ReflowComments: Never

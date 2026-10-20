@@ -1,0 +1,65 @@
+name: Release
+
+# Builds a zip per platform listed in APP_PLATFORMS (CMakeLists.txt).
+# Run it by hand from the Actions tab, or push a tag like v0.1.0 to also create a draft GitHub
+# release with generated notes, which you review and publish from the Releases page.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  platforms:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.read.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: read
+        run: |
+          matrix=$(bash scripts/ci-matrix.sh)
+          echo "matrix=$matrix" >>"$GITHUB_OUTPUT"
+
+  build:
+    needs: platforms
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.platforms.outputs.matrix) }}
+    name: build (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ninja
+        if: matrix.platform != 'Windows' # Windows gets it with Visual Studio
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then sudo apt-get update && sudo apt-get install -y ninja-build
+          else brew install ninja; fi
+
+      - run: bash ./scripts/release.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}
+          path: out/*.zip
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+          draft: true # stays private until you review it and click Publish
+          generate_release_notes: true # pre-filled from commits/PRs since the last tag

@@ -1,0 +1,51 @@
+name: CI
+
+# Checks that every push compiles on each platform in APP_PLATFORMS (CMakeLists.txt).
+# Builds only: nothing is uploaded or released.
+on:
+  push:
+    branches: ["**"] # every branch, but not tags (those are handled by release.yml)
+  workflow_dispatch:
+
+# A newer push to the same branch cancels the run still going for the older one
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  platforms:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.read.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: read
+        run: |
+          matrix=$(bash scripts/ci-matrix.sh)
+          echo "matrix=$matrix" >>"$GITHUB_OUTPUT"
+
+  build:
+    needs: platforms
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.platforms.outputs.matrix) }}
+    name: build (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ninja
+        if: matrix.platform != 'Windows' # Windows gets it with Visual Studio
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then sudo apt-get update && sudo apt-get install -y ninja-build
+          else brew install ninja; fi
+
+      - name: Build dev
+        run: bash ./scripts/build.sh dev
+
+      - name: Build release
+        run: bash ./scripts/build.sh release
