@@ -7,23 +7,29 @@
   },
   "configurePresets": [
     {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
       "name": "dev",
       "displayName": "Dev",
-      "generator": "Ninja",
+      "inherits": "base",
       "binaryDir": "${sourceDir}/build/dev",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "release",
       "displayName": "Release",
-      "generator": "Ninja",
+      "inherits": "base",
       "binaryDir": "${sourceDir}/build/release",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     }
   ],
